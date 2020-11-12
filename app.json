@@ -1,0 +1,22 @@
+{
+  "name": "ChatApp",
+  "description": "A chat application for SENG 513 assignment3",
+  "website": "https://github.com/Antoineb3/ChatApp",
+  "repository": "https://github.com/Antoineb3/ChatApp",
+  "logo": "https://node-js-sample.herokuapp.com/node.svg",
+  "success_url": "/",
+  "keywords": [
+    "node",
+    "express",
+    "socket.io",
+    "realtime",
+    "websocket"
+  ],
+  "scripts": {
+  },
+  "addons": [
+  ],
+  "env": {
+    "BUILDPACK_URL": "https://github.com/heroku/heroku-buildpack-nodejs"
+  }
+}
