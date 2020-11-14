@@ -1,3 +1,4 @@
+/* General */
 * {
     margin: 0;
     padding: 0;
@@ -6,28 +7,25 @@
 
 body {
     font: 13px Helvetica, Arial;
+    color: white;
+    overflow: hidden;
 }
 
-form {
-    background: #000;
-    padding: 3px;
-    position: fixed;
-    bottom: 0;
+#content {
+    background: #555;
+    max-width: 960px;
     width: 100%;
+    height: 100vh;
+    margin: auto;
+    
 }
 
-form input {
-    border: 0;
-    padding: 10px;
-    width: 90%;
-    margin-right: .5%;
-}
-
-form button {
-    width: 9%;
-    background: rgb(130, 224, 255);
-    border: none;
-    padding: 10px;
+/* Messages */
+#messages-container {
+    height: calc(100vh - 80px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin-top: 15px
 }
 
 #messages {
@@ -36,14 +34,73 @@ form button {
     padding: 0;
 }
 
-#messages li {
-    padding: 5px 10px;
+.message {
+    padding: 5px 15px;
 }
 
-#messages li:nth-child(odd) {
-    background: #eee;
+::-webkit-scrollbar {
+    width: 10px;
 }
 
-#messages {
-    margin-bottom: 40px
+::-webkit-scrollbar-track {
+    background: #777;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #222;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #111;
+}
+
+/* Users */
+#users-container {
+    margin-top: 15px;
+    height: calc(100vh - 80px);
+    
+}
+
+#users {
+    background: #888;
+    border: 1px white;
+    border-radius: 8px;
+    list-style-type: none;
+    height: calc(100% - 25px);
+    margin-top: 15px;
+    padding: 10px;
+}
+
+#users-container>h6 {
+    height: 10px;
+}
+
+
+/* Message Input */
+
+form {
+    padding: 5px;
+    position: fixed;
+    bottom: 0;
+    width: calc(100vw - 30px);
+    max-width: 930px;
+    padding-bottom:15px;
+}
+
+form input {
+    background: #444;
+    color: #fff;
+    
+    border-radius: 8px;
+    padding: 10px;
+    width: 85%;
+    margin-right: 1%;
+}
+
+form button {
+    background: #222;
+    color: #fff;
+    border-radius: 8px;
+    width: 12%;
+    padding: 10px;
 }

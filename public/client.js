@@ -8,6 +8,8 @@ $(function () {
     socket.on('set user', function (msg) {
         console.log('setting user name: ');
         console.log(msg);
+        // set the cookie
+        document.cookie = "name=" + msg;
         user = msg;
     });
 
@@ -41,16 +43,17 @@ $(function () {
         chat_log.forEach(element => {
             let li = $('<li>').addClass('message');
             let date = new Date(element.date);
-            if (element.user.name !== 'SERVER') {
-                li.append($('<span>').text(formatAMPM(date) + ' ').addClass('time'));
-                li.append($('<span>').text(element.user.name + ': ').css("color", '#' + element.user.color).addClass('user'));
-            }
+            li.append($('<span>').text(formatAMPM(date) + ' ').addClass('time'));
+            li.append($('<span>').text(element.user.name + ': ').css("color", '#' + element.user.color).addClass('user'));
             li.append($('<span>').text(element.msg).addClass('msg'));
             if (element.user.name === user) {
                 li.css('font-weight', 'bold');
             }
             $('#messages').append(li);
         });
+
+        $('#messages-container').scrollTop($('#messages').height());
+
     });
 
 

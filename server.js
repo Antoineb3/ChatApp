@@ -2,6 +2,7 @@ let express = require('express');
 let app = express();
 let http = require('http').Server(app);
 let io = require('socket.io')(http);
+let cookie = require('cookie');
 let port = process.env.PORT || 3000;
 let emojiMap = require('smile2emoji').emojiMap; // https://www.npmjs.com/package/smile2emoji
 
@@ -11,6 +12,7 @@ Object.keys(emojiMap).sort((a, b) => b.length - a.length).forEach(key => ordered
 
 let chat_log = [];
 let user_list = [];
+let disconneced_users = [];
 let usercount = 1;
 
 // Rplce all for strings, needed because replace only replaces first occurance
@@ -25,37 +27,64 @@ app.use(express.static('public'))
 
 io.on('connection', function (socket) {
   // add user on connect
-  // Random color https://css-tricks.com/snippets/javascript/random-hex-color/
-  let user = { name: ('User' + (usercount++)), color: (Math.floor(Math.random() * 16777215).toString(16)) };
+  let cookie_name = '';
+  // sometimes this throws an exception, seems to happen randomly
+  try {
+    cookie_name = cookie.parse(socket.handshake.headers.cookie)['name'];
+  } catch (e) {
+    console.log(e);
+  }
+  let user = {};
+  if (cookie_name && !nameTaken(cookie_name)) { // old user with name not taken
+    let matching_useres = disconneced_users.filter(u => u.name === cookie_name);
+    if (matching_useres.length > 0) { // assign old user object 
+      user = matching_useres[0];
+    }
+    else { // create new user object with name
+      // Random color https://css-tricks.com/snippets/javascript/random-hex-color/
+      user = { name: cookie_name, color: (Math.floor(Math.random() * 16777215).toString(16)) };
+    }
+  } else { // new user 
+    // Random color https://css-tricks.com/snippets/javascript/random-hex-color/
+    user = { name: ('User' + (usercount++)), color: (Math.floor(Math.random() * 16777215).toString(16)) };
+  }
   socket.emit('set user', user.name);
+
+  //send chat log to user
+  socket.emit('set chat log', chat_log);
+
+  // remove user from disconnected list
+  disconneced_users = disconneced_users.filter(u => u.name !== user.name && u.name !== cookie_name);
+
   // update user list for everyone on connect
   user_list.push(user);
   io.emit('set user list', user_list);
-  // add connection message to chat log
-  sendMessage(user.name + ' connected');
 
   // remove user on disconnect
   socket.on('disconnect', function () {
     user_list = user_list.filter(item => item.name != user.name);
+    disconneced_users.push(user);
     io.emit('set user list', user_list);
-    sendMessage(user.name + ' disconnected');
   });
 
   // when new chat message is sent
   socket.on('chat message', function (msg) {
     // Replace emojis found in emoji map
     Object.keys(orderedEmojiMap).forEach(key => msg = msg.replaceAll(key, emojiMap[key]));
-    sendMessage(msg, user);
+    // only keep 200 most recent
+    if (chat_log.length >= 200) {
+      chat_log.shift();
+    }
+    let date = new Date();
+    chat_log.push({ date, user, msg });
+    io.emit('set chat log', chat_log);
   });
 
   // update user name
   socket.on('user command', function (msg) {
     msg = msg.trim();
     if (nameTaken(msg)) { // name taken
-      return; //TODO: send error
-    }
-    else if (msg == 'SERVER') { // reserved name
-      return; //TODO: send error
+      return; 
     }
     // upadate state
     user.name = msg;
@@ -73,28 +102,14 @@ io.on('connection', function (socket) {
       io.emit('set user list', user_list);
       io.emit('set chat log', chat_log);
     }
-    else {
-      // TODO: error message
-    }
   });
 
 
   // Helper functions
 
-  // Adds a message to the log and sends it to all users, sender is server when not specified
-  function sendMessage(msg, user = { name: 'SERVER', color: '000000' }) {
-    // only keep 200 most recent
-    if (chat_log.length >= 200) {
-      chat_log.shift();
-    }
-    let date = new Date();
-    chat_log.push({ date, user, msg });
-    io.emit('set chat log', chat_log);
-  }
-
   // Checks if a name has already been taken
   function nameTaken(name) {
-    return user_list.filter(u => u.name == name).length > 0;
+    return user_list.filter(u => u.name === name).length > 0;
   }
 
 });
